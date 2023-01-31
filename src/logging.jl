@@ -1,0 +1,229 @@
+mutable struct Storage
+    dt::Dict
+end
+export Storage
+
+Storage() = Storage(Dict())
+
+
+import Base.show
+function Base.show(io::IO, st::Storage)
+    l = length(st.dt)
+    #n = sizeof(st.dt) #TODO: this is not the correct number of all elements in nested dicts
+    println(io, "LAMAS.Storage with $l top-level entries:");
+    TOML.print(io, st.dt)
+end 
+
+
+isa_TOML_value(x::Any) = false
+isa_TOML_value(x::Union{AbstractVector, AbstractDict, Dates.DateTime, Dates.Time, Dates.Date, Bool, Integer, AbstractFloat, AbstractString}) = true   
+
+
+#---- store function -----------------------------------------------------------
+function store(st::Storage, x::Any, n::String)
+    d = make_dict(x, n)
+    st.dt[n] = d[n]
+    return nothing
+end
+
+function store(st::Storage, x::Symbol, n::String)
+    s = ":"*string(x)
+    st.dt[n] = s
+    return nothing
+end 
+
+function store(st::Storage, x::Expr, n::String)
+    s = ":("*string(x)*")"
+    st.dt[n] = s
+    return nothing
+end 
+
+export store
+
+
+#---- store macro --------------------------------------------------------------
+function default_storage()
+    throw(
+        ArgumentError(
+        "No default LAMA.Storage object provided. Overload the function \'default_storage\' by doing:
+        import LAMA.default_storage    
+        st = Storage()
+        LAMA.default_storage() = st ")
+    )
+end
+
+macro store(var)
+    parent_module = __module__
+    d = make_dict(var, parent_module)
+
+    st = default_storage()
+    merge!(st.dt, d)
+
+    return esc(:($var))    
+end
+export @store
+
+
+
+function make_dict(var, name::String)
+    return Dict(name => to_dict(var, name))
+end
+
+function make_dict(var, m)
+    @capture(var, a_ = b_)
+    return Dict(String(a) => to_dict(m.eval(b), String(a)))
+end
+
+
+
+function to_dict(x, above)
+    dc = Dict()
+    fns = fieldnames(typeof(x))
+
+    if length(fns) == 0
+        if isa_TOML_value(x)
+            return x
+        elseif isa(x, Union{Symbol, Expr})
+            return repr(x)
+        else
+            return string(Base.typename(typeof(x)).wrapper)
+        end
+    else 
+        tn = Base.typename(typeof(x)).wrapper
+        dc[string(above)] = string(tn)
+        for f in fns
+            dc[string(f)]=to_dict(getfield(x, f), string(f)) #recursive call
+        end
+    end
+
+    return dc
+end
+
+#----- storefig ----------------------------------------------------------------
+#TODO: add option to store .png and .pdf simultaneously
+#TODO: add savefig kwargs
+function storefig(st::Storage, p, name::String, path::String)
+    store(st, path, name)
+    _plots_module().savefig(p, path)
+end
+export storefig
+
+#----- write LAMA.Storage to .toml or .csv -------------------------------------
+import Base.write
+"""
+    Base.write(`st::Storage`, `path::String`)
+
+Writes the data contained in the `Storage` object `st` to the file specified by `path`. The type of file format is determined by the file extension of `path`.
+
+# Arguments:
+    `st::Storage`: A `Storage` object containing the data to be written to the file.
+    `path::String` : The file path to which the data will be written
+
+# Returns:
+    None
+
+# Note:
+    - If the file path ends with ".toml", the data will be written in TOML format to the file.
+    - If the file path ends with ".csv", the data will be written in CSV format to the file
+"""
+function Base.write(st::Storage, path::String)
+    if endswith(path, ".toml")
+        open(path, "w") do io
+            TOML.print(io, st.dt)
+        end
+    elseif endswith(path, ".csv")
+        df = DataFrame()
+        push!(df, st.dt, cols=:union)
+        CSV.write(path, df)
+    end
+end 
+
+
+
+function flatten_dict(d::Dict; delimiter::String = ".")
+    result = Dict()
+    stack = [(key, value) for (key, value) in d]
+    while !isempty(stack)
+        key, value = pop!(stack)
+        if typeof(value) <: Dict
+            for (subkey, subvalue) in value
+                push!(stack, (string(key, delimiter, subkey), subvalue))
+            end
+        else
+            result[key] = value
+        end
+    end
+    return result
+end
+
+
+"""
+    remove_deep_nested(d::Dict, level; delimiter::String = ".")
+
+Takes a dictionary `d` and removes the key-value pairs whose keys have more than `level` number of `delimiter` separators.
+
+# Arguments:
+    `d::Dict`: A dictionary from which the key-value pairs needs to be removed.
+    `level::Integer`: The maximum allowed number of delimiter separators in the keys.
+    `delimiter::String`: The separator used in the key. (default: ".")
+
+# Returns:
+    A dictionary with the key-value pairs removed whose keys have more than `level` number of `delimiter` separators.
+"""
+function remove_deep_nested(d::Dict, level; delimiter::String = ".")
+    for (key, value) in d
+        if count(delimiter, key) > level
+            delete!(d, key)
+        end
+    end
+    return d
+end
+
+
+function flatten_toml_dict(d; delimiter = ".", levels=Inf, selection=String[], remove=String[])
+    flat_d = flatten_dict(d, delimiter=delimiter)
+    flat_d = remove_deep_nested(flat_d, levels, delimiter=delimiter)
+    flat_d = select_from_dict(flat_d; selection=selection, remove=remove)
+
+    return flat_d
+end 
+
+
+function select_from_dict(d; selection=String[], remove=String[])
+    if !isempty(selection)
+        d = filter(p -> p[1] in selection , d)
+    end
+
+    if !isempty(remove)
+        [delete!(d, key) for key in remove]
+    end
+end
+
+
+
+
+#----- collect multiple .toml or .csv files and write into one .csv file -------
+#TODO: allow to sort order
+function collect_csv(filenames, outputpath; delimiter = ".", levels=Inf, selection=String[], remove=String[])
+    df = DataFrame()
+
+    for fn in filenames
+        if  endswith(fn, ".toml")
+            dt = TOML.parsefile(fn)
+            flat_dt = flatten_toml_dict(dt, delimiter = delimiter, levels=levels, selection=selection, remove=remove)
+            
+            push!(df, flat_dt, cols=:union)
+
+        elseif endswith(fn, ".csv") # TODO: allow selections for .csv dicts
+            df2 = DataFrame(CSV.File(fn))
+            append!(df, df2, cols=:union)
+        end
+    end
+
+    CSV.write(outputpath, df)
+end 
+
+export collect_csv
+
+
+

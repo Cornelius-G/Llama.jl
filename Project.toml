@@ -1,0 +1,25 @@
+name = "LAMA"
+uuid = "554f9559-9a26-4639-8a50-65052af0b0c5"
+authors = ["Cornelius Grunwald <cornelius.grunwald@tu-dortmund.de> and contributors"]
+manifest_format = "2.0"
+version = "0.1.0"
+
+[deps]
+CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+Glob = "c27321d9-0574-5035-807b-f59d2c89b15c"
+MacroTools = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
+NamedTupleTools = "d9ec5142-1e00-5aa0-9d6a-321866360f50"
+OrderedCollections = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
+Requires = "ae029012-a4dd-5104-9daa-d747884805df"
+TOML = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
