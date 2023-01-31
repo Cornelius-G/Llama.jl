@@ -40,7 +40,7 @@ import LAMA.default_storage
 LAMA.default_storage() = st
 ```
 
-The `@store` macro then allows to store variables with their name in the default storage:
+The `@store` macro allows to store variables with their name in the default storage:
 ```Julia
 @store my_second_variable = 2+5
 @store my_third_variable = "This is a String"
@@ -72,7 +72,7 @@ using BAT
 For plotting, the `storefig` functions allows to save the plot to a file (using `Plots.savefig`) and simultaneously stores its file path in the `Llama.Storage` so that the [Llama-Viewer]() can display it:
 ```Julia
 using Plots
-p = plot(rand(100), rand(100))
+p = plot(rand(100))
 storefig(st, p, "my_first_plot", "results/my_plot.pdf")
 ```
 
