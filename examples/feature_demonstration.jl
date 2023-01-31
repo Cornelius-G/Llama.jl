@@ -1,4 +1,4 @@
-using LlAMA 
+using Llama
 
 #create a new LlAMA.Storage object to hold all the stored key-value pairs.
 st = Storage()
@@ -13,8 +13,8 @@ store(st, :a, "my_first_symbol")
 show(st)
 
 # For even more convenient usage with the `@store` macro, a default storage object needs to be defined:
-import LlAMA.default_storage
-LlAMA.default_storage() = st
+import Llama.default_storage
+Llama.default_storage() = st
 
 # use `@store` macro to store variables with their name in the default storage:
 @store my_second_variable = 2+5
@@ -47,16 +47,16 @@ end
 my_function()
 show(st)
 
-if my_local_variable
-    println("my_local_variable = ", my_local_variable)
-else 
-    println("my_local_variable is not defined in global scope.")
+try 
+    println(my_local_variable)
+catch 
+    println("Variable 'my_local_variable' is not defined in global scope.")
 end
 
 # For plotting, the `storefig` functions allows to save the plot to a file (using `savefig`)
 # and simultaneously stores its file path in the `Storage` so that the Llama-Viewer can display it:
 using Plots
-p = plot(rand(100), rand(100))
+p = plot(sin.(rand(100)))
 storefig(st, p, "my_first_plot", "results/my_plot.pdf")
 
 # the storage object can be written to a .toml file (recommended for readability) 
@@ -64,5 +64,6 @@ write(st, "my_config.toml")
 # or also to a .csv file
 write(st, "my_config.csv")
 
+show(st)
 
 

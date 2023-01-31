@@ -1,6 +1,6 @@
-name = "LAMA"
+name = "Llama"
 uuid = "554f9559-9a26-4639-8a50-65052af0b0c5"
-authors = ["Cornelius Grunwald <cornelius.grunwald@tu-dortmund.de> and contributors"]
+authors = ["Cornelius Grunwald <cornelius.grunwald@tu-dortmund.de>"]
 manifest_format = "2.0"
 version = "0.1.0"
 

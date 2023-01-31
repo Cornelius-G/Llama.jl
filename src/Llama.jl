@@ -1,4 +1,4 @@
-module LAMA
+module Llama
 
 using DataFrames
 using CSV
