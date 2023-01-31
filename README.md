@@ -6,6 +6,10 @@
 
 [Llama](https://github.com/Cornelius-G/Llama) is a tool that helps you keep track of your analyses and simulations. It consists of a Logger and and Viewer.
 Llama.jl is the LLama Logger for Julia and allows to generate logfiles of your analyses that can later be explored with the [Llama Viewer]().
+Its primary purpose is to keep track of the parameters and hyperparameters you have chosen in your data analysis or simulation scripts.
+
+As a researcher, you've probably been in a situation where you weren't sure which exact settings you used or what parameters were set to what value when showing the results of your analysis or simulation. Sometimes you might also lose track of whether you have already run an analysis with these settings or not. 
+Especially when runing the same analysis script with different settings many times, using Llama.jl and the Llama Viewer will help you to keep track of all your analyses and help you quickly find the results and plots you were looking for.
 
 <br/>
 
