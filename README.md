@@ -49,8 +49,23 @@ The `@store` macro allows to store variables with their name in the default stor
 @store my_nt = (a=1, b=2)
 ```
 
+```Julia
 show(st)
 
+LAMAS.Storage with 8 top-level entries:
+my_third_variable = "This is a String"
+also_my_first_variable = 1
+my_first_symbol = ":a"
+my_second_variable = 7
+my_first_variable = 1
+my_array = [0.7351191342002329, 0.6709238183126125, 0.242324052727378, 0.636459920624151, 0.45880780951411015]
+my_symbol = ":abcd"
+
+[my_nt]
+my_nt = "NamedTuple"
+b = 2
+a = 1
+```
 
 ### 3) Saving the storage by writing to file
 The storage can be written to a .toml file (recommended for readability) or to a .csv file 
@@ -62,10 +77,35 @@ write(st, "my_config.csv")
 ## Further features
 
 ### Custom datatypes
-The `@store` macro and the `store` function also work on complex/custom data types by performing a simple serialization in a human-readable format:
+The `@store` macro and the `store` function also work on more complex or custom data types by performing a simple serialization in a human-readable format:
 ```Julia
 using BAT
 @store algorithm = MetropolisHastings()
+```
+```
+[algorithm]
+algorithm = "MetropolisHastings"
+weighting = "RepetitionWeighting"
+
+    [algorithm.proposal]
+    proposal = "BAT.MvTDistProposal"
+    df = 1.0
+
+    [algorithm.tuning]
+    "λ" = 0.5
+    tuning = "AdaptiveMHTuning"
+    r = 0.5
+    "β" = 1.5
+
+        [algorithm.tuning.c]
+        left = 0.0001
+        c = "IntervalSets.Interval"
+        right = 100.0
+
+        [algorithm.tuning."α"]
+        left = 0.15
+        right = 0.35
+        "α" = "IntervalSets.Interval"
 ```
 
 ### Plots
@@ -74,6 +114,10 @@ For plotting, the `storefig` functions allows to save the plot to a file (using 
 using Plots
 p = plot(rand(100))
 storefig(st, p, "my_first_plot", "results/my_plot.pdf")
+```
+```
+LAMAS.Storage with 1 top-level entries:
+my_first_plot = "results/my_plot.pdf"
 ```
 
 ### Local variables
