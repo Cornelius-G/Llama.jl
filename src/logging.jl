@@ -20,6 +20,30 @@ isa_TOML_value(x::Union{AbstractVector, AbstractDict, Dates.DateTime, Dates.Time
 
 
 #---- store function -----------------------------------------------------------
+
+"""
+    store(st::Storage, x::Any, n::String)
+
+A function that stores the value of `x` in a `Storage` object with name `n`.
+The function returns `nothing`.
+
+## Example
+
+```julia
+julia> st = Storage()
+Storage(Dict{Any,Any}())
+
+julia> x = 10
+10
+
+julia> store(st, x, "x")
+nothing
+
+julia> st.dt
+Dict{Any,Any} with 1 entry:
+  "x" => 10
+"""
+
 function store(st::Storage, x::Any, n::String)
     d = make_dict(x, n)
     st.dt[n] = d[n]
@@ -52,6 +76,27 @@ function default_storage()
     )
 end
 
+"""
+    macro store(var)
+
+A macro that stores the value of `var` in the default `Storage` object with the name of the variable "var".
+The macro returns the evaluated expression.
+A default `Storage` object needs to be provided by implementing the `Llama.default_storage` function.
+
+## Example
+
+```julia
+julia> import LAMA.default_storage
+julia> st = Storage()
+julia> LAMA.default_storage() = st
+
+julia> @store x = 10
+10
+
+julia> st.dt
+Dict{Any,Any} with 1 entry:
+  "x" => 10
+"""
 macro store(var)
     parent_module = __module__
     d = make_dict(var, parent_module)
@@ -101,7 +146,26 @@ end
 
 #----- storefig ----------------------------------------------------------------
 #TODO: add option to store .png and .pdf simultaneously
-#TODO: add savefig kwargs
+
+"""
+    storefig(st::Storage, p, name::String, path::String) 
+
+This function stores the file path of a given plot `p` in a given `Storage` instance, and saves the plot to a specified file path.
+
+The function takes four arguments:
+- `st` is a `Storage` instance where the name of the plot and its file path will be stored.
+- `p` is the plot to be stored and saved.
+- `name` is a string representing the name under which the file path will be stored in `st`.
+- `path` is a string representing the file path where the plot will be saved.
+
+## Example
+
+```julia
+julia> st = Storage()
+julia> p = plot(rand(10))
+julia> storefig(st, p, "random_plot", "random_plot.png")
+```
+"""
 function storefig(st::Storage, p, name::String, path::String)
     store(st, path, name)
     _plots_module().savefig(p, path)
@@ -139,7 +203,28 @@ function Base.write(st::Storage, path::String)
 end 
 
 
+"""
+    flatten_dict(d::Dict; delimiter::String = ".")
+    
+This function flattens a nested `Dict` by concatenating keys separated by a specified delimiter.
 
+The function takes a single mandatory argument:
+- `d`, a `Dict` to be flattened.
+
+The function also takes an optional keyword argument:
+- `delimiter`, a string specifying the delimiter to use when concatenating keys. Default is delimiter=".".
+
+## Example
+
+```julia
+julia> d = Dict("a" => Dict("b" => 1, "c" => 2), "d" => 3)
+julia> flatten_dict(d, delimiter="_")
+Dict{String,Any} with 3 entries:
+  "a_b" => 1
+  "d"  => 3
+  "a_c" => 2
+```
+"""
 function flatten_dict(d::Dict; delimiter::String = ".")
     result = Dict()
     stack = [(key, value) for (key, value) in d]
@@ -158,7 +243,7 @@ end
 
 
 """
-    remove_deep_nested(d::Dict, level; delimiter::String = ".")
+    remove_nested(d::Dict, level; delimiter::String = ".")
 
 Takes a dictionary `d` and removes the key-value pairs whose keys have more than `level` number of `delimiter` separators.
 
@@ -170,7 +255,7 @@ Takes a dictionary `d` and removes the key-value pairs whose keys have more than
 # Returns:
     A dictionary with the key-value pairs removed whose keys have more than `level` number of `delimiter` separators.
 """
-function remove_deep_nested(d::Dict, level; delimiter::String = ".")
+function remove_nested(d::Dict, level; delimiter::String = ".")
     for (key, value) in d
         if count(delimiter, key) > level
             delete!(d, key)
@@ -180,15 +265,16 @@ function remove_deep_nested(d::Dict, level; delimiter::String = ".")
 end
 
 
-function flatten_toml_dict(d; delimiter = ".", levels=Inf, selection=String[], remove=String[])
-    flat_d = flatten_dict(d, delimiter=delimiter)
-    flat_d = remove_deep_nested(flat_d, levels, delimiter=delimiter)
-    flat_d = select_from_dict(flat_d; selection=selection, remove=remove)
 
-    return flat_d
-end 
+"""
+    select_from_dict(d; selection=String[], remove=String[]) 
+    
+This function selects or removes specific keys from a dictionary `d`.
 
-
+The function takes two optional keyword arguments, `selection` and `remove`, which are both arrays of strings representing the keys to be selected or removed from the dictionary, respectively.
+If `selection` is provided and not empty, the function returns a new dictionary containing only the key-value pairs whose keys are included in `selection`.
+If `remove` is provided and not empty, the function removes all key-value pairs from the dictionary whose keys are included in `remove`.
+"""
 function select_from_dict(d; selection=String[], remove=String[])
     if !isempty(selection)
         d = filter(p -> p[1] in selection , d)
@@ -201,16 +287,63 @@ end
 
 
 
+"""
+    prepare_dict(d; delimiter = ".", levels=Inf, selection=String[], remove=String[]) 
+    
+This function prepares a nested dictionary `d` for saving to .toml or .csv.
+
+The function first flattens the dictionary `d` using the delimiter `delimiter`. The default delimiter is `"."`.
+Next, the function removes nested elements of the dictionary and keeps the specified number of levels `levels`. 
+By default, `levels=Inf`, meaning all nested elements will be kept.
+Finally, the function selects or removes specific keys from the dictionary using the `selection` and `remove` keyword arguments.
+
+The function returns the prepared dictionary.
+"""
+function prepare_dict(d; delimiter = ".", levels=Inf, selection=String[], remove=String[])
+    flat_d = flatten_dict(d, delimiter=delimiter)
+    flat_d = remove_nested(flat_d, levels, delimiter=delimiter)
+    flat_d = select_from_dict(flat_d; selection=selection, remove=remove)
+
+    return flat_d
+end 
+
+
+
 
 #----- collect multiple .toml or .csv files and write into one .csv file -------
 #TODO: allow to sort order
+
+"""
+    collect_csv(filenames, outputpath; delimiter = ".", levels=Inf, selection=String[], remove=String[]) 
+    
+This function collects data from multiple sources, `.toml` and `.csv` files, and saves the combined data to a `.csv` file.
+
+The function takes two mandatory arguments:
+- `filenames`, an array of strings representing the filenames of the data sources to be collected.
+- `outputpath`, a string representing the file path where the combined data will be saved.
+
+The function also takes four optional keyword arguments:
+- `delimiter`, a string specifying the delimiter to use when flattening nested dictionaries.
+- `levels`, a number specifying the maximum number of nested levels to parse.
+- `selection`, an array of strings representing the keys to be selected from all available keys.
+- `remove`, an array of strings representing the keys to be removed from the result.
+
+The function then writes the combined data to the specified `outputpath` in `.csv` format.
+
+## Example
+
+```julia
+julia> filenames = ["file1.toml", "file2.csv"]
+julia> collect_csv(filenames, "output.csv", selection=["a", "c"])
+````
+"""
 function collect_csv(filenames, outputpath; delimiter = ".", levels=Inf, selection=String[], remove=String[])
     df = DataFrame()
 
     for fn in filenames
         if  endswith(fn, ".toml")
             dt = TOML.parsefile(fn)
-            flat_dt = flatten_toml_dict(dt, delimiter = delimiter, levels=levels, selection=selection, remove=remove)
+            flat_dt = prepare_dict(dt, delimiter = delimiter, levels=levels, selection=selection, remove=remove)
             
             push!(df, flat_dt, cols=:union)
 
@@ -222,7 +355,6 @@ function collect_csv(filenames, outputpath; delimiter = ".", levels=Inf, selecti
 
     CSV.write(outputpath, df)
 end 
-
 export collect_csv
 
 
