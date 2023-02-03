@@ -77,6 +77,32 @@ write(st, "my_config.toml")
 write(st, "my_config.csv")
 ```
 
+### 4) Collecting multiple log files in a single `.csv` to be explored with the Llama-Viewer
+To explore your logfiles with the [Llama-Viewer](), you need to collect them in a single `.csv` file, using the `collect_csv` function.
+```Julia
+using Llama
+using Glob # for file name pattern matching 
+
+cd("path/to/my/analysis")
+
+target_signature = "results/*/*.toml" # here we search through all subfolders of `results` and collect all `.toml` files.
+inputfiles = glob(target_signature) # `inputfiles` now contains the relative paths to all `.toml` files.
+
+collect_csv(inputfiles, "output.csv") # the `Llama.collect_csv` builds a single `.csv` file and writes it to "output.csv"
+```
+
+When building the `.csv` file, three keyword arguments allow to control which information to include in the final `.csv` file.  
+- The `levels` keyword controls how many levels of nested entries are kept. For `levels=2`, for example, only the toplevel `a`, and the two sublevels `a.b` and `a.b.c` are kept in the resulting `.csv` file.  
+- The keyword `selection` allows to explictly select the entries that should be part of the final `.csv` by passing an array with the respective keys.  
+- The keyword `remove` allows to remove certain entries from the final `.csv` by passing an array with the respective keys.  
+```Julia
+to_keep = ["mX", "sX", "fit_type", "sampling_algorithm.nsteps"]
+to_remove = ["datetime", "sampling_algorithm.nchains", "sampling_algorithm.nsteps"]
+
+collect_csv(inputfiles, "output.csv", levels=2, selection=to_keep, remove=to_remove)
+```
+
+
 ## Further features
 
 ### Custom datatypes
