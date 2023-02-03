@@ -56,16 +56,16 @@ The `@store` macro allows to store variables with their name in the default stor
 show(st)
 
 LAMAS.Storage with 8 top-level entries:
-my_third_variable = "This is a String"
 also_my_first_variable = 1
+my_third_variable = "This is a String"
 my_first_symbol = ":a"
 my_second_variable = 7
 my_first_variable = 1
-my_array = [0.7351191342002329, 0.6709238183126125, 0.242324052727378, 0.636459920624151, 0.45880780951411015]
+my_array = [0.8517861304283944, 0.9016900845124735, 0.17093762733323548, 0.23313316506280757, 0.23645158370327224]
 my_symbol = ":abcd"
 
 [my_nt]
-my_nt = "NamedTuple"
+"⟪Type⟫" = "NamedTuple"
 b = 2
 a = 1
 ```
@@ -87,28 +87,28 @@ using BAT
 ```
 ```
 [algorithm]
-algorithm = "MetropolisHastings"
+"⟪Type⟫" = "MetropolisHastings"
 weighting = "RepetitionWeighting"
 
     [algorithm.proposal]
-    proposal = "BAT.MvTDistProposal"
+    "⟪Type⟫" = "BAT.MvTDistProposal"
     df = 1.0
 
     [algorithm.tuning]
+    "⟪Type⟫" = "AdaptiveMHTuning"
     "λ" = 0.5
-    tuning = "AdaptiveMHTuning"
     r = 0.5
     "β" = 1.5
 
         [algorithm.tuning.c]
         left = 0.0001
-        c = "IntervalSets.Interval"
+        "⟪Type⟫" = "IntervalSets.Interval"
         right = 100.0
 
         [algorithm.tuning."α"]
         left = 0.15
+        "⟪Type⟫" = "IntervalSets.Interval"
         right = 0.35
-        "α" = "IntervalSets.Interval"
 ```
 
 ### Plots
