@@ -91,6 +91,22 @@ inputfiles = glob(target_signature) # `inputfiles` now contains the relative pat
 collect_csv(inputfiles, "output.csv") # the `Llama.collect_csv` builds a single `.csv` file and writes it to "output.csv"
 ```
 
+
+## Further features
+
+### Plots
+For plotting, the `storefig` functions allows to save the plot to a file (using `Plots.savefig`) and simultaneously stores its file path in the `Llama.Storage` so that the [Llama-Viewer]() can display it:
+```Julia
+using Plots
+p = plot(rand(100))
+storefig(st, p, "my_first_plot", "results/my_plot.pdf")
+```
+```
+LAMAS.Storage with 1 top-level entries:
+my_first_plot = "results/my_plot.pdf"
+```
+
+### Keywords for CSV collection
 When building the `.csv` file, three keyword arguments allow to control which information to include in the final `.csv` file.  
 - The `levels` keyword controls how many levels of nested entries are kept. For `levels=2`, for example, only the toplevel `a`, and the two sublevels `a.b` and `a.b.c` are kept in the resulting `.csv` file.  
 - The keyword `selection` allows to explictly select the entries that should be part of the final `.csv` by passing an array with the respective keys.  
@@ -101,9 +117,6 @@ to_remove = ["datetime", "sampling_algorithm.nchains", "sampling_algorithm.nstep
 
 collect_csv(inputfiles, "output.csv", levels=2, selection=to_keep, remove=to_remove)
 ```
-
-
-## Further features
 
 ### Custom datatypes
 The `@store` macro and the `store` function also work on more complex or custom data types by performing a simple serialization in a human-readable format:
@@ -137,17 +150,6 @@ weighting = "RepetitionWeighting"
         right = 0.35
 ```
 
-### Plots
-For plotting, the `storefig` functions allows to save the plot to a file (using `Plots.savefig`) and simultaneously stores its file path in the `Llama.Storage` so that the [Llama-Viewer]() can display it:
-```Julia
-using Plots
-p = plot(rand(100))
-storefig(st, p, "my_first_plot", "results/my_plot.pdf")
-```
-```
-LAMAS.Storage with 1 top-level entries:
-my_first_plot = "results/my_plot.pdf"
-```
 
 ### Local variables
 Also local variables can be stored with the `@store` macro, of course without them being added to global scope:
