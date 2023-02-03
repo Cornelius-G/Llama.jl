@@ -4,12 +4,11 @@
 <img src="icons/llama_julia.png" width="240" align="left"/>
 
 
-[Llama](https://github.com/Cornelius-G/Llama) is a tool that helps you keep track of your analyses and simulations. It consists of a Logger and and Viewer.
-Llama.jl is the LLama Logger for Julia and allows to generate logfiles of your analyses that can later be explored with the [Llama Viewer]().
-Its primary purpose is to keep track of the parameters and hyperparameters you have chosen in your data analysis or simulation scripts.
+[Llama](https://github.com/Cornelius-G/Llama) is a tool that helps you keep track of your analyses and simulations. It consists of two components, a logger and and viewer. Llama.jl is the logger for Julia and allows to generate logfiles of your analyses that can later be explored with the [Llama-Viewer](https://github.com/Cornelius-G/Llama-Viewer).
+Its primary purpose is to keep track of the parameters and hyperparameters you use in your data analysis or simulation scripts.
 
-As a researcher, you've probably been in a situation where you weren't sure which exact settings you used or what parameters were set to what value when showing the results of your analysis or simulation. Sometimes you might also lose track of whether you have already run an analysis with these settings or not. 
-Especially when runing the same analysis script with different settings many times, using Llama.jl and the Llama Viewer will help you to keep track of all your analyses and help you quickly find the results and plots you were looking for.
+As a researcher, you have probably also been in situations where you were not completely sure which exact settings you used or which parameters were set to which value when you showed the results and plots of your analysis or simulation. Or maybe you have experienced that you lost track of whether you have already performed an analysis with exactly these settings or not. 
+Especially if you run the same analysis script several times with different settings, using Llama.jl and the [Llama-Viewer](https://github.com/Cornelius-G/Llama-Viewer) can help you keep track of all your analyses and quickly find the results and plots you are looking for.
 
 <br/>
 
