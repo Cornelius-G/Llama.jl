@@ -21,9 +21,12 @@ Llama.default_storage() = st
 @store my_third_variable = "This is a String"
 @store my_array = rand(5)
 @store my_symbol = :abcd
-@store my_nt = (a=1, b=2)
-
+@store c = (c=1, b=2)
 show(st)
+
+# TODO
+#@store c = Dict("c"=>1, "b"=>2)
+
 
 #Hint: It can often be useful to store the date and time of code execution:
 using Dates
@@ -34,7 +37,6 @@ using Dates
 # by performing a simple serialization in a human-readable format:
 using BAT
 @store algorithm = MetropolisHastings()
-
 show(st)
 
 # Also local variables can be stored with the `@store` macro, of course 
@@ -63,7 +65,3 @@ storefig(st, p, "my_first_plot", "results/my_plot.pdf")
 write(st, "my_config.toml")
 # or also to a .csv file
 write(st, "my_config.csv")
-
-show(st)
-
-

@@ -135,7 +135,8 @@ function to_dict(x, above)
         end
     else 
         tn = Base.typename(typeof(x)).wrapper
-        dc[string(above)] = string(tn)
+        #dc[string(above)] = string(tn)
+        dc["⟪Type⟫"] = string(tn)
         for f in fns
             dc[string(f)]=to_dict(getfield(x, f), string(f)) #recursive call
         end
@@ -227,12 +228,16 @@ Dict{String,Any} with 3 entries:
 """
 function flatten_dict(d::Dict; delimiter::String = ".")
     result = Dict()
-    stack = [(key, value) for (key, value) in d]
+    stack = Vector{Any}([(key, value) for (key, value) in d])
     while !isempty(stack)
         key, value = pop!(stack)
         if typeof(value) <: Dict
             for (subkey, subvalue) in value
-                push!(stack, (string(key, delimiter, subkey), subvalue))
+                if subkey == "⟪Type⟫"
+                    push!(stack, (string(key), subvalue))
+                else 
+                    push!(stack, (string(key, delimiter, subkey), subvalue))
+                end
             end
         else
             result[key] = value
@@ -344,7 +349,6 @@ function collect_csv(filenames, outputpath; delimiter = ".", levels=Inf, selecti
         if  endswith(fn, ".toml")
             dt = TOML.parsefile(fn)
             flat_dt = prepare_dict(dt, delimiter = delimiter, levels=levels, selection=selection, remove=remove)
-            
             push!(df, flat_dt, cols=:union)
 
         elseif endswith(fn, ".csv") # TODO: allow selections for .csv dicts
