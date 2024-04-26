@@ -124,11 +124,13 @@ end
 function to_dict(x, above)
     dc = Dict()
     fns = fieldnames(typeof(x))
-
+ 
     if length(fns) == 0
-        if isa_TOML_value(x)
+        if isa(x, Array)
+            return string(x)
+        elseif isa_TOML_value(x)
             return x
-        elseif isa(x, Union{Symbol, Expr})
+        elseif isa(x, Union{Symbol, Expr, Nothing})
             return repr(x)
         else
             return string(Base.typename(typeof(x)).wrapper)
